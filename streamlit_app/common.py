@@ -54,7 +54,11 @@ def load_test_results() -> pd.DataFrame | None:
 
 
 def pipeline_ready() -> bool:
-    return load_best_model() is not None and load_test_data() is not None
+    return (
+        load_best_model() is not None
+        and load_test_data() is not None
+        and load_eval_metrics() is not None
+    )
 
 
 def is_synthetic_run() -> bool:
