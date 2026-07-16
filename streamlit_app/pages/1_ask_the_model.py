@@ -72,8 +72,23 @@ if ask or "last_target" in st.session_state:
     st.session_state["last_target"] = target
     window_start = min(target, engine.history_end) - pd.Timedelta(hours=47)
     window_end = target
-    with st.spinner("Predicting..."):
-        result_df = cached_predict_range(engine, window_start, window_end)
+    rollout_hours = max(int((window_end - engine.history_end).total_seconds() // 3600), 0)
+
+    if rollout_hours > 200:
+        # Large recursive rollout: inherently sequential (each hour depends
+        # on the previous prediction), so a real progress bar beats a plain
+        # spinner sitting still for tens of seconds. Not cached -- these are
+        # rare/exploratory queries and the DataFrame can get large.
+        progress_bar = st.progress(0.0, text=f"Rolling forward {rollout_hours:,} hours...")
+
+        def _update(done: int, total: int) -> None:
+            progress_bar.progress(done / total, text=f"Rolling forward: {done:,} / {total:,} hours")
+
+        result_df = engine.predict_range(window_start, window_end, on_progress=_update)
+        progress_bar.empty()
+    else:
+        with st.spinner("Predicting..."):
+            result_df = cached_predict_range(engine, window_start, window_end)
 
     if target not in result_df.index:
         st.error("Couldn't compute a prediction for that moment — try a different date/time.")

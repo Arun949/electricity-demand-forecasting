@@ -19,6 +19,7 @@ from __future__ import annotations
 import pickle
 import warnings
 from functools import lru_cache
+from typing import Callable
 
 import holidays as holidays_lib
 import numpy as np
@@ -39,7 +40,7 @@ warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 logger = get_logger(__name__)
 
-MAX_HOURS_BEYOND_HISTORY = 24 * 365 * 3  # ~3 years beyond history_end; error compounds with horizon
+MAX_HOURS_BEYOND_HISTORY = 24 * 180  # ~6 months beyond history_end: stays responsive on slower cloud CPUs
 
 
 @lru_cache(maxsize=8)
@@ -289,10 +290,22 @@ class ForecastEngine:
     # ------------------------------------------------------------------ #
     # Public API
     # ------------------------------------------------------------------ #
-    def predict_range(self, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
+    def predict_range(
+        self,
+        start: pd.Timestamp,
+        end: pd.Timestamp,
+        on_progress: Callable[[int, int], None] | None = None,
+    ) -> pd.DataFrame:
         """Hourly predictions for [start, end]. Never mutates engine state --
         each call works on a private numpy array seeded from history, so
-        repeated or concurrent calls stay independent and reproducible."""
+        repeated or concurrent calls stay independent and reproducible.
+
+        `on_progress(done, total)`, if given, is called periodically during
+        the recursive rollout (the only potentially-slow part -- it's
+        inherently sequential, each hour depends on the previous one's
+        prediction) so a caller can show a progress bar instead of a plain
+        spinner on multi-thousand-step requests.
+        """
         start, end = pd.Timestamp(start), pd.Timestamp(end)
         if start.tzinfo is None:
             start = start.tz_localize("UTC")
@@ -308,12 +321,16 @@ class ForecastEngine:
         rows = []
 
         # Recursive rollout beyond the last known data point.
+        rollout_total = total_len - known_len
+        progress_every = max(rollout_total // 100, 1)
         for i in range(known_len, total_len):
             ts = self.history_start + i * hour
             pred, weather_source = self._predict_one_fast(ts, demand_arr, i)
             demand_arr[i] = pred
             if ts >= start:
                 rows.append((ts, pred, True, weather_source))
+            if on_progress is not None and ((i - known_len + 1) % progress_every == 0 or i == total_len - 1):
+                on_progress(i - known_len + 1, rollout_total)
 
         # Historical portion, for chart context / actual-vs-predicted.
         safe_start = max(start, self.min_datetime)
