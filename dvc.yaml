@@ -1,0 +1,61 @@
+stages:
+  data_collection:
+    cmd: python src/data_collection.py
+    deps:
+      - src/data_collection.py
+      - src/utils.py
+      - config/config.yaml
+    outs:
+      - data/raw/demand_fr.csv
+      - data/raw/weather_openmeteo_paris.csv
+      - data/raw/french_holidays.csv
+
+  preprocessing:
+    cmd: python src/preprocessing.py
+    deps:
+      - src/preprocessing.py
+      - data/raw/demand_fr.csv
+      - data/raw/weather_openmeteo_paris.csv
+      - data/raw/french_holidays.csv
+    outs:
+      - data/processed/combined_data.csv
+
+  feature_engineering:
+    cmd: python src/feature_engineering.py
+    deps:
+      - src/feature_engineering.py
+      - data/processed/combined_data.csv
+    outs:
+      - data/processed/train_data.csv
+      - data/processed/val_data.csv
+      - data/processed/test_data.csv
+      - models/scaler.pkl
+
+  training:
+    cmd: python src/models.py
+    deps:
+      - src/models.py
+      - data/processed/train_data.csv
+      - data/processed/val_data.csv
+    outs:
+      - models/linear_regression.pkl
+      - models/svm.pkl
+      - models/decision_tree.pkl
+      - models/random_forest.pkl
+      - models/gbdt.pkl
+    metrics:
+      - outputs/validation_results.csv:
+          cache: false
+
+  evaluation:
+    cmd: python src/evaluation.py
+    deps:
+      - src/evaluation.py
+      - data/processed/test_data.csv
+      - models/random_forest.pkl
+      - models/gbdt.pkl
+    outs:
+      - models/best_model.pkl
+    metrics:
+      - outputs/eval_metrics.json:
+          cache: false

@@ -1,0 +1,40 @@
+name: Model Training & Testing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 0'  # weekly retraining check
+
+jobs:
+  train-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/ --cov=src
+
+      # ENTSOE_API_KEY is optional: without it, data_collection.py falls back
+      # to synthetic demand data so the pipeline still runs end to end in CI.
+      - name: Run pipeline
+        env:
+          ENTSOE_API_KEY: ${{ secrets.ENTSOE_API_KEY }}
+        run: |
+          python src/data_collection.py
+          python src/preprocessing.py
+          python src/feature_engineering.py
+          python src/models.py
+          python src/evaluation.py
