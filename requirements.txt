@@ -1,0 +1,36 @@
+# Data & APIs
+pandas>=2.2,<3.0
+numpy>=1.26,<3.0
+requests>=2.31
+entsoe-py>=0.6.11
+pytz>=2023.3
+holidays>=0.45
+
+# EDA & Visualization
+matplotlib>=3.8
+seaborn>=0.13
+plotly>=5.18
+
+# ML & Preprocessing
+scikit-learn>=1.4
+xgboost>=2.0
+
+# MLOps & Tracking
+mlflow>=2.9
+# dvc is intentionally NOT pinned here: its dependency resolution can hang
+# pip's resolver for a very long time (observed 8+ minutes with near-zero
+# CPU use, i.e. resolver backtracking, not a slow download). Install it
+# separately if/when you want it: `pip install dvc`. dvc.yaml already
+# defines the pipeline and works the moment dvc itself is installed.
+
+# Deployment
+streamlit>=1.30
+pydantic>=2.5
+
+# Testing & Quality
+pytest>=7.4
+pytest-cov>=4.1
+
+# Utilities
+python-dotenv>=1.0
+pyyaml>=6.0
