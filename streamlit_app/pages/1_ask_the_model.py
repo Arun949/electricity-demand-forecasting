@@ -51,12 +51,13 @@ st.markdown(
 
 default_date = min(engine.history_end.date(), engine.max_datetime.date())
 max_date = engine.max_datetime.date()
+today_date = min(max(pd.Timestamp.now(tz="UTC").date(), engine.min_datetime.date()), max_date)
 if "picked_date_input" not in st.session_state:
     st.session_state["picked_date_input"] = default_date
 
 st.caption("Quick pick")
 quick_picks = [
-    ("Latest data", default_date),
+    ("Today", today_date),
     ("+1 week", default_date + timedelta(weeks=1)),
     ("+1 month", default_date + timedelta(days=30)),
     ("+6 months", default_date + timedelta(days=182)),
