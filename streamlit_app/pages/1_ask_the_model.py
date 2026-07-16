@@ -58,10 +58,10 @@ if "picked_date_input" not in st.session_state:
 st.caption("Quick pick")
 quick_picks = [
     ("Today", today_date),
-    ("+1 week", default_date + timedelta(weeks=1)),
-    ("+1 month", default_date + timedelta(days=30)),
-    ("+6 months", default_date + timedelta(days=182)),
-    ("+1 year", default_date + timedelta(days=365)),
+    ("+1 week", today_date + timedelta(weeks=1)),
+    ("+1 month", today_date + timedelta(days=30)),
+    ("+6 months", today_date + timedelta(days=182)),
+    ("+1 year", today_date + timedelta(days=365)),
 ]
 qcols = st.columns(len(quick_picks))
 for qcol, (qlabel, qdate) in zip(qcols, quick_picks):
