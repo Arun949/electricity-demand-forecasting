@@ -1,0 +1,40 @@
+# Central configuration for the electricity demand forecasting pipeline.
+# All src/ modules read from this file so hyperparameters and paths live
+# in one place instead of being hardcoded across scripts.
+
+project:
+  name: electricity-demand-forecasting
+  country_code: FR          # ENTSO-E bidding zone code
+  timezone: Europe/Paris
+
+data:
+  # 24 months of history, matching the project brief. Adjust to taste;
+  # Open-Meteo's archive API typically lags ~5 days behind today.
+  start_date: "2023-01-01"
+  end_date: "2025-01-01"
+  raw_dir: data/raw
+  processed_dir: data/processed
+  weather:
+    latitude: 48.8566
+    longitude: 2.3522
+    location_name: Paris
+
+split:
+  # Temporal (not random) split: earliest data trains, most recent tests.
+  train_ratio: 0.6
+  val_ratio: 0.2
+  test_ratio: 0.2
+
+features:
+  target: demand
+  lags: [1, 7, 24, 168]        # hours: last hour, 7h, 1 day, 1 week
+  rolling_windows: [24, 168]   # hours: 1 day, 1 week
+
+models:
+  random_state: 42
+  cv_folds: 5
+
+mlflow:
+  experiment_name: electricity_demand_forecasting
+  # SQLite file (not a directory): mlflow >=3 requires a DB-backed store.
+  tracking_uri: mlruns.db
