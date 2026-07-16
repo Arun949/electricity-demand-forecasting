@@ -40,7 +40,7 @@ warnings.filterwarnings("ignore", message="X does not have valid feature names")
 
 logger = get_logger(__name__)
 
-MAX_HOURS_BEYOND_HISTORY = 24 * 180  # ~6 months beyond history_end: stays responsive on slower cloud CPUs
+MAX_HOURS_BEYOND_HISTORY = 24 * 365 * 3  # ~3 years beyond history_end (through ~2027); progress bar covers the wait
 
 
 @lru_cache(maxsize=8)
