@@ -1,5 +1,5 @@
 import sys
-from datetime import time
+from datetime import time, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -16,12 +16,13 @@ from common import (  # noqa: E402
     plotly_layout,
     render_footer,
     render_header,
+    render_sidebar_brand,
     status_badge,
 )
 from forecast import ForecastEngine  # noqa: E402
 
-st.set_page_config(page_title="Ask the Model", page_icon="💬", layout="wide")
 inject_base_css()
+render_sidebar_brand()
 render_header("Ask the Model", "Pick any date & time — get a live prediction", icon="💬")
 
 if not pipeline_ready():
@@ -48,13 +49,32 @@ st.markdown(
     "features it was trained on (recent demand, weather, calendar)."
 )
 
+default_date = min(engine.history_end.date(), engine.max_datetime.date())
+max_date = engine.max_datetime.date()
+if "picked_date_input" not in st.session_state:
+    st.session_state["picked_date_input"] = default_date
+
+st.caption("Quick pick")
+quick_picks = [
+    ("Latest data", default_date),
+    ("+1 week", default_date + timedelta(weeks=1)),
+    ("+1 month", default_date + timedelta(days=30)),
+    ("+6 months", default_date + timedelta(days=182)),
+    ("+1 year", default_date + timedelta(days=365)),
+]
+qcols = st.columns(len(quick_picks))
+for qcol, (qlabel, qdate) in zip(qcols, quick_picks):
+    with qcol:
+        if st.button(qlabel, width="stretch"):
+            st.session_state["picked_date_input"] = min(qdate, max_date)
+
 col_date, col_hour, col_btn = st.columns([2, 2, 1])
 with col_date:
     picked_date = st.date_input(
         "Date",
-        value=min(engine.history_end.date(), engine.max_datetime.date()),
         min_value=engine.min_datetime.date(),
         max_value=engine.max_datetime.date(),
+        key="picked_date_input",
     )
 with col_hour:
     picked_time = st.selectbox(

@@ -100,7 +100,8 @@ FONT_STACK = "system-ui, -apple-system, 'Segoe UI', sans-serif"
 
 
 def inject_base_css() -> None:
-    """Production chrome: hide framework branding, style KPI cards, brand header."""
+    """Production chrome: hide framework branding, style KPI cards, brand header,
+    sidebar nav, hover/motion polish."""
     st.markdown(
         f"""
         <style>
@@ -118,12 +119,19 @@ def inject_base_css() -> None:
             padding-bottom: 3rem;
         }}
 
+        /* -------------------------------------------------- KPI cards -- */
         div[data-testid="stMetric"] {{
             background: #ffffff;
             border: 1px solid rgba(11,11,11,0.08);
             border-radius: 10px;
             padding: 0.9rem 1.1rem 0.75rem;
             box-shadow: 0 1px 2px rgba(11,11,11,0.04);
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }}
+        div[data-testid="stMetric"]:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(11,11,11,0.08);
+            border-color: rgba(42,120,214,0.35);
         }}
         div[data-testid="stMetricLabel"] > p {{
             color: {PALETTE["ink_secondary"]};
@@ -137,11 +145,54 @@ def inject_base_css() -> None:
             font-weight: 650;
         }}
 
+        /* -------------------------------------------------- Sidebar ---- */
         section[data-testid="stSidebar"] {{
             background: {PALETTE["page_plane"]};
             border-right: 1px solid rgba(11,11,11,0.08);
         }}
+        section[data-testid="stSidebar"] > div:first-child {{
+            padding-top: 1rem;
+        }}
+        .sidebar-brand {{
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.25rem 0.5rem 1.1rem;
+            margin-bottom: 0.6rem;
+            border-bottom: 1px solid rgba(11,11,11,0.08);
+        }}
+        .sidebar-brand .mark {{
+            font-size: 1.35rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));
+        }}
+        .sidebar-brand .name {{
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: {PALETTE["ink"]};
+            line-height: 1.15;
+        }}
+        .sidebar-brand .tagline {{
+            font-size: 0.72rem;
+            color: {PALETTE["ink_muted"]};
+        }}
+        [data-testid="stSidebarNav"] a, [data-testid="stSidebarNavLink"] {{
+            border-radius: 8px !important;
+            transition: background 0.14s ease, padding-left 0.14s ease;
+        }}
+        [data-testid="stSidebarNav"] a:hover {{
+            background: rgba(42,120,214,0.08) !important;
+            padding-left: 0.9rem !important;
+        }}
+        [data-testid="stSidebarNav"] a[aria-current="page"] {{
+            background: rgba(42,120,214,0.12) !important;
+            font-weight: 650;
+        }}
+        [data-testid="stSidebarNav"] a[aria-current="page"] span {{
+            color: {PALETTE["categorical"][0]} !important;
+        }}
 
+        /* -------------------------------------------------- Header ----- */
         .app-header {{
             display: flex;
             align-items: center;
@@ -172,6 +223,26 @@ def inject_base_css() -> None:
             margin-left: 0.15rem;
         }}
 
+        /* -------------------------------------------------- Hero band -- */
+        .hero-band {{
+            background: linear-gradient(135deg, rgba(42,120,214,0.07), rgba(27,175,122,0.05) 55%, rgba(237,161,0,0.05));
+            border: 1px solid rgba(42,120,214,0.12);
+            border-radius: 16px;
+            padding: 1.75rem 1.9rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }}
+        .hero-band::before {{
+            content: "";
+            position: absolute;
+            top: -60%; right: -10%;
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(42,120,214,0.10), transparent 70%);
+            pointer-events: none;
+        }}
+
+        /* -------------------------------------------------- Badges ----- */
         .status-badge {{
             display: inline-flex;
             align-items: center;
@@ -185,10 +256,41 @@ def inject_base_css() -> None:
         .status-badge .dot {{
             width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none;
         }}
+        .status-good .dot {{
+            animation: pulse-dot 2s ease-in-out infinite;
+        }}
+        @keyframes pulse-dot {{
+            0%, 100% {{ opacity: 1; box-shadow: 0 0 0 0 rgba(12,163,12,0.35); }}
+            50% {{ opacity: 0.75; box-shadow: 0 0 0 4px rgba(12,163,12,0); }}
+        }}
         .status-good {{ background: rgba(12,163,12,0.12); color: #006300; }}
         .status-warning {{ background: rgba(250,178,25,0.18); color: #7a5200; }}
         .status-critical {{ background: rgba(208,59,59,0.12); color: #8f1f1f; }}
 
+        /* -------------------------------------------------- Nav cards --- */
+        div[data-testid="stPageLink"] {{
+            border: 1px solid rgba(11,11,11,0.08);
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 0.15rem 0.4rem;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }}
+        div[data-testid="stPageLink"]:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(11,11,11,0.10);
+            border-color: rgba(42,120,214,0.4);
+        }}
+
+        /* -------------------------------------------------- Buttons ----- */
+        .stButton > button {{
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }}
+        .stButton > button:hover {{
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(42,120,214,0.25);
+        }}
+
+        /* -------------------------------------------------- Footer ------ */
         .app-footer {{
             margin-top: 2.5rem;
             padding-top: 1rem;
@@ -197,6 +299,22 @@ def inject_base_css() -> None:
             font-size: 0.8rem;
         }}
         </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_brand() -> None:
+    """Small brand block pinned above the native page nav in the sidebar."""
+    st.sidebar.markdown(
+        """
+        <div class="sidebar-brand">
+            <span class="mark">⚡</span>
+            <div>
+                <div class="name">Demand Forecasting</div>
+                <div class="tagline">French grid &middot; MSc AI</div>
+            </div>
+        </div>
         """,
         unsafe_allow_html=True,
     )

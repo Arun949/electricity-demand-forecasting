@@ -6,10 +6,17 @@ import streamlit as st
 from scipy.stats import ks_2samp
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common import inject_base_css, load_test_data, pipeline_ready, render_footer, render_header  # noqa: E402
+from common import (  # noqa: E402
+    inject_base_css,
+    load_test_data,
+    pipeline_ready,
+    render_footer,
+    render_header,
+    render_sidebar_brand,
+)
 
-st.set_page_config(page_title="Data Drift", page_icon="🚨", layout="wide")
 inject_base_css()
+render_sidebar_brand()
 render_header("Data Drift Monitoring", "Kolmogorov–Smirnov test, earlier vs. later test window", icon="🚨")
 
 if not pipeline_ready():

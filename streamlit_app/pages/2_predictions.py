@@ -18,10 +18,11 @@ from common import (  # noqa: E402
     plotly_layout,
     render_footer,
     render_header,
+    render_sidebar_brand,
 )
 
-st.set_page_config(page_title="Predictions", page_icon="📈", layout="wide")
 inject_base_css()
+render_sidebar_brand()
 render_header("Predictions", "Forecast vs. actual · most recent test-set window", icon="📈")
 
 if not pipeline_ready():

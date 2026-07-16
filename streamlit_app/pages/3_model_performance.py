@@ -16,10 +16,11 @@ from common import (  # noqa: E402
     plotly_layout,
     render_footer,
     render_header,
+    render_sidebar_brand,
 )
 
-st.set_page_config(page_title="Model Performance", page_icon="📊", layout="wide")
 inject_base_css()
+render_sidebar_brand()
 render_header("Model Performance", "Test-set comparison across all five models", icon="📊")
 
 if not pipeline_ready():
