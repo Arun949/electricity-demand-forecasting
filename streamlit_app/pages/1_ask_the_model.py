@@ -65,13 +65,15 @@ with col_btn:
     st.markdown("<div style='height:1.6rem'></div>", unsafe_allow_html=True)
     ask = st.button("Ask the model", type="primary", width="stretch")
 
-target = pd.Timestamp.combine(picked_date, picked_time).tz_localize("UTC")
-horizon_beyond_history = (target - engine.history_end).total_seconds() / 3600
+picked_target = pd.Timestamp.combine(picked_date, picked_time).tz_localize("UTC")
 
-if ask or "last_target" in st.session_state:
-    st.session_state["last_target"] = target
-    window_start = min(target, engine.history_end) - pd.Timedelta(hours=47)
-    window_end = target
+# Only compute on an explicit click -- changing the date/hour widgets alone
+# must not trigger a new (potentially expensive) prediction. Results are
+# cached in session_state and re-displayed as-is on reruns caused by other
+# widget interactions, until the button is clicked again.
+if ask:
+    window_start = min(picked_target, engine.history_end) - pd.Timedelta(hours=47)
+    window_end = picked_target
     rollout_hours = max(int((window_end - engine.history_end).total_seconds() // 3600), 0)
 
     if rollout_hours > 200:
@@ -90,10 +92,17 @@ if ask or "last_target" in st.session_state:
         with st.spinner("Predicting..."):
             result_df = cached_predict_range(engine, window_start, window_end)
 
-    if target not in result_df.index:
+    if picked_target not in result_df.index:
         st.error("Couldn't compute a prediction for that moment — try a different date/time.")
         st.stop()
 
+    st.session_state["last_target"] = picked_target
+    st.session_state["last_result_df"] = result_df
+
+if "last_target" in st.session_state:
+    target = st.session_state["last_target"]
+    result_df = st.session_state["last_result_df"]
+    horizon_beyond_history = (target - engine.history_end).total_seconds() / 3600
     point = result_df.loc[target]
     is_forecast = bool(point["is_forecast"])
 
